@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Expansión",
+    "url": "https://e00-expansion.uecdn.es/rss/mercados.xml",
+    "category": "Mercados España",
+    "enabled": true
+  },
+  {
+    "name": "Investing.com ES",
+    "url": "https://es.investing.com/rss/news.rss",
+    "category": "Mercados Global",
+    "enabled": true
+  },
+  {
+    "name": "Yahoo Finance (IBEX)",
+    "url": "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^IBEX&region=ES&lang=es-ES",
+    "category": "Mercados España",
+    "enabled": true
+  },
+  {
+    "name": "Bloomberg Markets",
+    "url": "https://feeds.bloomberg.com/markets/news.rss",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "Financial Times",
+    "url": "https://www.ft.com/rss/home",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "MarketWatch Pulse",
+    "url": "https://feeds.marketwatch.com/marketwatch/marketpulse/",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "MarketWatch Top Stories",
+    "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "The Wall Street Journal",
+    "url": "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "Fortune",
+    "url": "https://fortune.com/feed",
+    "category": "Internacional",
+    "enabled": true
+  },
+  {
+    "name": "The Economist",
+    "url": "https://www.economist.com/finance-and-economics/rss.xml",
+    "category": "Macroeconomía Internacional",
+    "enabled": true
+  },
+  {
+    "name": "Forbes",
+    "url": "https://forbes.com/business/feed/",
+    "category": "Empresas & Negocios",
+    "enabled": true
+  },
+  {
+    "name": "TheStreet",
+    "url": "https://www.thestreet.com/.rss/full/",
+    "category": "Wall Street",
+    "enabled": true
+  },
+  {
+    "name": "El Confidencial",
+    "url": "https://rss.elconfidencial.com/mercados/",
+    "category": "Mercados España",
+    "enabled": true
+  }
+]

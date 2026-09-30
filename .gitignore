@@ -1,0 +1,9 @@
+# Secretos locales
+.env
+
+# Archivos generados y logs
+__pycache__/
+*.pyc
+podcasts/*.mp3
+scripts/*.txt
+podcast_execution.log
