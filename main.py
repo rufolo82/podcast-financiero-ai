@@ -22,16 +22,32 @@ from config import (
 from rss_fetcher import collect_all_news, format_articles_for_prompt
 from script_generator import generate_podcast_script
 from tts_synthesizer import create_podcast_audio, synthesize_turn
-from email_notifier import send_podcast_email
+from email_notifier import (
+    send_podcast_email,
+    was_slot_already_sent_today,
+    is_within_schedule_window
+)
 from scheduler import install_windows_tasks, run_loop_scheduler
 
-def run_workflow():
+def run_workflow(scheduled_mode: bool = False):
     print("=" * 60)
     print("🚀 INICIANDO WORKFLOW DE PODCAST FINANCIERO")
     madrid_tz = pytz.timezone("Europe/Madrid")
     now = datetime.now(madrid_tz)
     print(f"⏰ Fecha y hora (Madrid): {now.strftime('%d/%m/%Y %H:%M:%S')}")
     print("=" * 60)
+
+    if scheduled_mode:
+        in_window, window_msg = is_within_schedule_window()
+        print(f"🕒 Control de ventana horaria: {window_msg}")
+        if not in_window:
+            print("⏹️ Ejecución automática cancelada por estar fuera del horario de las 08:00 o 21:00.")
+            return
+
+        print("🔍 Verificando si el episodio de este turno ya fue enviado hoy...")
+        if was_slot_already_sent_today():
+            print("✅ El podcast de este turno (mañana/noche) ya fue enviado hoy. Saltando para evitar duplicados.")
+            return
 
     # 1. Recolección de noticias
     print("\n📡 1/4. Recopilando noticias financieras frescas (últimas 24-48h)...")
@@ -53,10 +69,10 @@ def run_workflow():
         print(f"❌ Error generando guion: {e}")
         return
 
-    # 3. Síntesis de voz con Google Studio Voices
-    print(f"\n🎙️ 3/4. Sintetizando audio con Google Studio Voices:")
-    print(f"   • Ana:    {VOICE_ANA} (Estudio)")
-    print(f"   • Carlos: {VOICE_CARLOS} (Estudio)")
+    # 3. Síntesis de voz con Google Neural2 Voices
+    print(f"\n🎙️ 3/4. Sintetizando audio con Google Neural2 Voices:")
+    print(f"   • Ana:    {VOICE_ANA}")
+    print(f"   • Carlos: {VOICE_CARLOS}")
     try:
         mp3_path, file_size = create_podcast_audio(script)
         size_mb = file_size / (1024 * 1024)
@@ -99,8 +115,9 @@ def test_rss():
 
 def main():
     parser = argparse.ArgumentParser(description="Workflow de Podcast Financiero Automatizado")
-    parser.add_argument("--run", action="store_true", help="Ejecutar el workflow completo ahora")
-    parser.add_argument("--test-tts", action="store_true", help="Probar las voces de Google Studio")
+    parser.add_argument("--run", action="store_true", help="Ejecutar el workflow completo manualmente ahora")
+    parser.add_argument("--scheduled", action="store_true", help="Ejecutar en modo programado (con filtro de ventana horaria y anti-duplicados)")
+    parser.add_argument("--test-tts", action="store_true", help="Probar las voces de Google")
     parser.add_argument("--test-rss", action="store_true", help="Probar recolección de noticias RSS")
     parser.add_argument("--schedule-install", action="store_true", help="Instalar tareas automáticas a las 08:00 y 21:00 en Windows")
     parser.add_argument("--schedule-run", action="store_true", help="Ejecutar el planificador continuo en primer plano")
@@ -115,13 +132,14 @@ def main():
     elif args.schedule_install:
         install_windows_tasks()
     elif args.schedule_run:
-        run_loop_scheduler(run_workflow)
+        run_loop_scheduler(lambda: run_workflow(scheduled_mode=True))
     elif args.sync_cloud:
         from cloud_deployer import deploy_to_github_cloud
         deploy_to_github_cloud()
+    elif args.scheduled:
+        run_workflow(scheduled_mode=True)
     else:
-        # Por defecto si no se pasa argumento o se pasa --run
-        run_workflow()
+        run_workflow(scheduled_mode=False)
 
 if __name__ == "__main__":
     main()

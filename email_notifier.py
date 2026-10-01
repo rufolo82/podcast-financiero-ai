@@ -1,3 +1,7 @@
+import imaplib
+import email
+from email.header import decode_header
+import re
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,6 +18,72 @@ from config import (
     SMTP_PASSWORD,
     SENDER_NAME
 )
+
+def get_current_slot_madrid() -> tuple[str, str, int]:
+    """Devuelve (fecha_dd_mm_yyyy, turno 'MANANA'|'NOCHE', hora_actual)"""
+    madrid_tz = pytz.timezone("Europe/Madrid")
+    now = datetime.now(madrid_tz)
+    date_prefix = now.strftime("%d/%m/%Y")
+    slot = "MANANA" if now.hour < 15 else "NOCHE"
+    return date_prefix, slot, now.hour
+
+def is_within_schedule_window() -> tuple[bool, str]:
+    """Verifica que una ejecución automática ocurra dentro de una ventana razonable (07:30-10:30 o 20:30-22:30 Madrid)"""
+    madrid_tz = pytz.timezone("Europe/Madrid")
+    now = datetime.now(madrid_tz)
+    hm = now.hour * 60 + now.minute
+
+    # Ventana mañana: 07:30 (450) a 10:30 (630)
+    if 450 <= hm <= 630:
+        return True, f"Ventana matutina válida ({now.strftime('%H:%M')} Madrid)"
+    # Ventana noche: 20:30 (1230) a 22:30 (1350)
+    if 1230 <= hm <= 1350:
+        return True, f"Ventana nocturna válida ({now.strftime('%H:%M')} Madrid)"
+
+    return False, f"Hora fuera de ventana de emisión ({now.strftime('%H:%M')} Madrid). Evitando envío a deshoras."
+
+def was_slot_already_sent_today() -> bool:
+    """Consulta por IMAP en [Gmail]/Enviados si ya se envió el podcast de este turno (mañana o noche) hoy"""
+    if not SMTP_USER or not SMTP_PASSWORD:
+        return False
+
+    date_prefix, current_slot, _ = get_current_slot_madrid()
+
+    try:
+        m = imaplib.IMAP4_SSL("imap.gmail.com", timeout=15)
+        m.login(SMTP_USER, SMTP_PASSWORD)
+        m.select('"[Gmail]/Enviados"', readonly=True)
+
+        typ, data = m.search(None, 'X-GM-RAW', '"Tu Podcast Financiero"')
+        if typ != "OK" or not data or not data[0]:
+            m.logout()
+            return False
+
+        msg_nums = data[0].split()[-8:]  # Revisar los últimos 8 enviados
+        for num in reversed(msg_nums):
+            _, msg_data = m.fetch(num, "(BODY[HEADER.FIELDS (SUBJECT)])")
+            if not msg_data or not msg_data[0]:
+                continue
+            msg = email.message_from_bytes(msg_data[0][1])
+            raw_subj = msg.get("Subject", "")
+            subj = "".join(
+                p.decode(enc or "utf-8", errors="ignore") if isinstance(p, bytes) else str(p)
+                for p, enc in decode_header(raw_subj)
+            )
+            # El asunto tiene formato: 📈 Tu Podcast Financiero está listo - DD/MM/YYYY a las HH:MM
+            if date_prefix in subj:
+                match = re.search(r"a las (\d{2}):(\d{2})", subj)
+                if match:
+                    sent_hour = int(match.group(1))
+                    sent_slot = "MANANA" if sent_hour < 15 else "NOCHE"
+                    if sent_slot == current_slot:
+                        m.logout()
+                        return True
+        m.logout()
+    except Exception as e:
+        print(f"⚠️ Aviso comprobando IMAP: {e}")
+
+    return False
 
 def send_podcast_email(mp3_path: Path, script_text: str) -> bool:
     madrid_tz = pytz.timezone("Europe/Madrid")
@@ -34,7 +104,6 @@ def send_podcast_email(mp3_path: Path, script_text: str) -> bool:
     msg['To'] = DESTINATION_EMAIL
     msg['Subject'] = subject
 
-    # Formatear el guion para HTML con estilo elegante
     formatted_script_html = script_text.replace("\n", "<br>")
     formatted_script_html = formatted_script_html.replace(
         "[ANA]:", "<br><b style='color: #1a73e8;'>[ANA]:</b>"
@@ -55,7 +124,7 @@ def send_podcast_email(mp3_path: Path, script_text: str) -> bool:
             {formatted_script_html}
           </div>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="font-size: 12px; color: #777;">Generado automáticamente por tu Podcast Financiero Workflow con voces Google Studio.</p>
+          <p style="font-size: 12px; color: #777;">Generado automáticamente por tu Podcast Financiero Workflow con voces Google Neural2.</p>
         </div>
       </body>
     </html>
@@ -63,7 +132,6 @@ def send_podcast_email(mp3_path: Path, script_text: str) -> bool:
 
     msg.attach(MIMEText(body_html, 'html'))
 
-    # Adjuntar MP3 si existe y su tamaño es razonable para email (< 25MB)
     if mp3_path.exists():
         part = MIMEBase('audio', 'mpeg')
         with open(mp3_path, 'rb') as f:

@@ -2,12 +2,17 @@ name: Podcast Financiero Diario (08:00 y 21:00 Madrid)
 
 on:
   schedule:
-    # Horario de Verano (CEST = UTC+2): 08:00 Madrid (06:00 UTC) y 21:00 Madrid (19:00 UTC)
-    - cron: '0 6 * * *'
-    - cron: '0 19 * * *'
-    # Horario de Invierno (CET = UTC+1): 08:00 Madrid (07:00 UTC) y 21:00 Madrid (20:00 UTC)
-    - cron: '0 7 * * *'
-    - cron: '0 20 * * *'
+    # Minutos :53 y :08 para evitar la saturación mundial del minuto :00 en GitHub Actions
+    # Horario de Verano (CEST = UTC+2): ~08:00 Madrid y ~21:00 Madrid
+    - cron: '53 5 * * *'
+    - cron: '8 6 * * *'
+    - cron: '53 18 * * *'
+    - cron: '8 19 * * *'
+    # Horario de Invierno (CET = UTC+1): ~08:00 Madrid y ~21:00 Madrid
+    - cron: '53 6 * * *'
+    - cron: '8 7 * * *'
+    - cron: '53 19 * * *'
+    - cron: '8 20 * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente en cualquier momento
 
 jobs:
@@ -27,7 +32,7 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
-      - name: Verificar turno horario España (Verano/Invierno) y Ejecutar Podcast
+      - name: Ejecutar Podcast (Con control de horario España y anti-duplicados)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
@@ -41,28 +46,10 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EVENT_NAME: ${{ github.event_name }}
-          CRON_SCHEDULE: ${{ github.event.schedule }}
         run: |
           python -c "
-          import os, sys, pytz
-          from datetime import datetime
+          import os, main
           event_name = os.getenv('EVENT_NAME', '')
-          cron = os.getenv('CRON_SCHEDULE', '')
-          madrid_tz = pytz.timezone('Europe/Madrid')
-          now_madrid = datetime.now(madrid_tz)
-          offset_hours = int(now_madrid.utcoffset().total_seconds() // 3600)
-          print(f'Evento: {event_name} | Cron: {cron} | Hora Madrid: {now_madrid.strftime(\"%H:%M\")} (UTC+{offset_hours})')
-
-          if event_name == 'schedule':
-              # En verano (UTC+2) corresponden los crons de las 6 y las 19 UTC
-              if offset_hours == 2 and cron not in ('0 6 * * *', '0 19 * * *'):
-                  print('Saltando ejecución de horario de invierno (actualmente en horario de verano CEST).')
-                  sys.exit(0)
-              # En invierno (UTC+1) corresponden los crons de las 7 y las 20 UTC
-              if offset_hours == 1 and cron not in ('0 7 * * *', '0 20 * * *'):
-                  print('Saltando ejecución de horario de verano (actualmente en horario de invierno CET).')
-                  sys.exit(0)
-
-          import main
-          main.run_workflow()
+          is_scheduled = (event_name == 'schedule')
+          main.run_workflow(scheduled_mode=is_scheduled)
           "
