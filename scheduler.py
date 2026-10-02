@@ -11,7 +11,7 @@ PYTHON_EXE = sys.executable
 MAIN_SCRIPT = BASE_DIR / "main.py"
 
 def install_windows_tasks() -> bool:
-    """Configura las 2 tareas en el Programador de Tareas de Windows con soporte completo para batería, suspensión y recuperación"""
+    """Configura las 2 tareas en el Programador de Tareas de Windows con soporte completo para batería, despertar, recuperación y encendido (AtLogOn)"""
     task_morning = "PodcastFinanciero_Manana"
     task_evening = "PodcastFinanciero_Noche"
     bat_path = BASE_DIR / "run_podcast.bat"
@@ -22,27 +22,30 @@ def install_windows_tasks() -> bool:
     except Exception:
         target_path = str(bat_path)
 
-    # 1. Crear las tareas base con schtasks
     cmd_morning = f'schtasks /create /tn "{task_morning}" /tr "{target_path}" /sc daily /st {SCHEDULE_MORNING} /f'
     cmd_evening = f'schtasks /create /tn "{task_evening}" /tr "{target_path}" /sc daily /st {SCHEDULE_EVENING} /f'
 
     subprocess.run(cmd_morning, shell=True, capture_output=True, text=True)
     subprocess.run(cmd_evening, shell=True, capture_output=True, text=True)
 
-    # 2. Actualizar configuración avanzada vía PowerShell para portátiles:
-    # - Permitir ejecución con batería (AllowStartIfOnBatteries)
-    # - No detener si pasa a batería (DontStopIfGoingOnBatteries)
-    # - Ejecutar en cuanto el equipo se encienda si estaba apagado/suspendido a la hora en punto (StartWhenAvailable)
-    # - Despertar el equipo para ejecutar (WakeToRun)
+    # Añadir disparadores múltiples (Hora exacta + Al iniciar sesión) y ajustes de energía
     ps_script = f"""
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -WakeToRun -ExecutionTimeLimit (New-TimeSpan -Hours 1)
-    Set-ScheduledTask -TaskName "{task_morning}" -Settings $settings | Out-Null
-    Set-ScheduledTask -TaskName "{task_evening}" -Settings $settings | Out-Null
+    $tMorning = @(
+        (New-ScheduledTaskTrigger -Daily -At "{SCHEDULE_MORNING}"),
+        (New-ScheduledTaskTrigger -AtLogOn)
+    )
+    $tEvening = @(
+        (New-ScheduledTaskTrigger -Daily -At "{SCHEDULE_EVENING}"),
+        (New-ScheduledTaskTrigger -AtLogOn)
+    )
+    Set-ScheduledTask -TaskName "{task_morning}" -Trigger $tMorning -Settings $settings | Out-Null
+    Set-ScheduledTask -TaskName "{task_evening}" -Trigger $tEvening -Settings $settings | Out-Null
     """
     res_ps = subprocess.run(["powershell", "-NoProfile", "-Command", ps_script], capture_output=True, text=True)
     if res_ps.returncode == 0:
-        print(f"✅ Tarea {task_morning} ({SCHEDULE_MORNING}) configurada con modo batería, despertar y recuperación activa.")
-        print(f"✅ Tarea {task_evening} ({SCHEDULE_EVENING}) configurada con modo batería, despertar y recuperación activa.")
+        print(f"✅ Tarea {task_morning} ({SCHEDULE_MORNING} + Al encender) configurada.")
+        print(f"✅ Tarea {task_evening} ({SCHEDULE_EVENING} + Al encender) configurada.")
         return True
     else:
         print(f"⚠️ Aviso al aplicar ajustes avanzados: {res_ps.stderr}")

@@ -28,16 +28,16 @@ def get_current_slot_madrid() -> tuple[str, str, int]:
     return date_prefix, slot, now.hour
 
 def is_within_schedule_window() -> tuple[bool, str]:
-    """Verifica que una ejecución automática ocurra dentro de una ventana razonable (07:30-10:30 o 20:30-22:30 Madrid)"""
+    """Verifica que una ejecución automática ocurra dentro de la ventana de emisión (07:50-10:30 o 20:50-23:00 Madrid)"""
     madrid_tz = pytz.timezone("Europe/Madrid")
     now = datetime.now(madrid_tz)
     hm = now.hour * 60 + now.minute
 
-    # Ventana mañana: 07:30 (450) a 10:30 (630)
-    if 450 <= hm <= 630:
+    # Ventana mañana: 07:50 (470) a 10:30 (630)
+    if 470 <= hm <= 630:
         return True, f"Ventana matutina válida ({now.strftime('%H:%M')} Madrid)"
-    # Ventana noche: 20:30 (1230) a 22:30 (1350)
-    if 1230 <= hm <= 1350:
+    # Ventana noche: 20:50 (1250) a 23:00 (1380)
+    if 1250 <= hm <= 1380:
         return True, f"Ventana nocturna válida ({now.strftime('%H:%M')} Madrid)"
 
     return False, f"Hora fuera de ventana de emisión ({now.strftime('%H:%M')} Madrid). Evitando envío a deshoras."

@@ -56,7 +56,7 @@ def deploy_to_github_cloud():
             json={
                 "name": REPO_NAME,
                 "description": "Podcast Financiero Diario Automatizado (08:00 y 21:00 Madrid)",
-                "private": True,
+                "private": False,
                 "auto_init": False
             }
         )
@@ -64,7 +64,8 @@ def deploy_to_github_cloud():
             raise RuntimeError(f"Error creando repositorio: {create_resp.text}")
         print("✅ Repositorio creado exitosamente.")
     else:
-        print(f"✅ Repositorio {username}/{REPO_NAME} detectado.")
+        requests.patch(repo_url, headers=headers, json={"private": False})
+        print(f"✅ Repositorio {username}/{REPO_NAME} detectado (minutos ilimitados en la nube activos).")
 
     # 2. Subir los Secrets encriptados a GitHub Actions
     print("🔐 Configurando claves seguras (Secrets) en GitHub Actions...")

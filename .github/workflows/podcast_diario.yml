@@ -2,17 +2,9 @@ name: Podcast Financiero Diario (08:00 y 21:00 Madrid)
 
 on:
   schedule:
-    # Minutos :53 y :08 para evitar la saturación mundial del minuto :00 en GitHub Actions
-    # Horario de Verano (CEST = UTC+2): ~08:00 Madrid y ~21:00 Madrid
-    - cron: '53 5 * * *'
-    - cron: '8 6 * * *'
-    - cron: '53 18 * * *'
-    - cron: '8 19 * * *'
-    # Horario de Invierno (CET = UTC+1): ~08:00 Madrid y ~21:00 Madrid
-    - cron: '53 6 * * *'
-    - cron: '8 7 * * *'
-    - cron: '53 19 * * *'
-    - cron: '8 20 * * *'
+    # Pulso cada 20 minutos para absorber cualquier retraso en la cola de GitHub Actions
+    # El filtro en Bash descarta en 0.01s cualquier ejecución fuera de las 08:00 o 21:00 Madrid
+    - cron: '*/20 * * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente en cualquier momento
 
 jobs:
@@ -20,19 +12,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verificar si estamos en ventana de 08:00 o 21:00 (Hora de España)
+        id: check_time
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          HM=$(TZ="Europe/Madrid" date +%H%M)
+          echo "Hora actual en Madrid: $HM (Evento: $EVENT_NAME)"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # Ventana Mañana: 07:50 a 10:30 Madrid | Ventana Noche: 20:50 a 23:00 Madrid
+          if { [ "$HM" -ge 0750 ] && [ "$HM" -le 1030 ]; } || { [ "$HM" -ge 2050 ] && [ "$HM" -le 2300 ]; }; then
+            echo "✅ Dentro de ventana horaria de emisión en España ($HM). Continuando..."
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "⏹️ Fuera de ventana horaria ($HM). Saliendo en 0.01s."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Descargar código del repositorio
+        if: steps.check_time.outputs.should_run == 'true'
         uses: actions/checkout@v4
 
       - name: Configurar Python 3.12
+        if: steps.check_time.outputs.should_run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
       - name: Instalar dependencias
+        if: steps.check_time.outputs.should_run == 'true'
         run: pip install -r requirements.txt
 
-      - name: Ejecutar Podcast (Con control de horario España y anti-duplicados)
+      - name: Ejecutar Podcast (Con control anti-duplicados IMAP)
+        if: steps.check_time.outputs.should_run == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
