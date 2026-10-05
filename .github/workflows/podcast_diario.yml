@@ -1,9 +1,9 @@
-name: Podcast Financiero Diario (08:00 y 21:00 Madrid)
+name: Podcast Financiero Diario (07:00 y 20:00 Madrid)
 
 on:
   schedule:
     # Pulso cada 20 minutos para absorber cualquier retraso en la cola de GitHub Actions
-    # El filtro en Bash descarta en 0.01s cualquier ejecución fuera de las 08:00 o 21:00 Madrid
+    # El filtro en Bash descarta en 0.01s cualquier ejecución fuera de las 07:00 o 20:00 Madrid
     - cron: '*/20 * * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente en cualquier momento
 
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verificar si estamos en ventana de 08:00 o 21:00 (Hora de España)
+      - name: Verificar si estamos en ventana de 07:00 o 20:00 (Hora de España)
         id: check_time
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -23,8 +23,8 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # Ventana Mañana: 07:50 a 10:30 Madrid | Ventana Noche: 20:50 a 23:00 Madrid
-          if { [ "$HM" -ge 0750 ] && [ "$HM" -le 1030 ]; } || { [ "$HM" -ge 2050 ] && [ "$HM" -le 2300 ]; }; then
+          # Ventana Mañana: 06:50 a 09:30 Madrid | Ventana Noche: 19:50 a 22:00 Madrid
+          if { [ "$HM" -ge 0650 ] && [ "$HM" -le 0930 ]; } || { [ "$HM" -ge 1950 ] && [ "$HM" -le 2200 ]; }; then
             echo "✅ Dentro de ventana horaria de emisión en España ($HM). Continuando..."
             echo "should_run=true" >> $GITHUB_OUTPUT
           else

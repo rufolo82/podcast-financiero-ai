@@ -13,7 +13,7 @@ Sistema profesional en Python para generar y enviar podcasts financieros diarios
 | **Reglas de Mercado** | Mezcla no balanceada | **75% Internacional** (Wall Street, Fed, BCE, tipos) + **25% Nacional** (IBEX 35), sin introducciones vacías |
 | **Límites de Ejecución** | Máximo 6 minutos en Google Apps Script (riesgo de timeout y caída) | **Sin límites**: corre de forma local y estable |
 | **Entrega** | Enlace a Drive con permisos | **Audio MP3 adjunto directamente al correo** para escucharlo en un clic desde el móvil o PC |
-| **Programación** | Triggers de Google Apps Script (imprecisos, ventanas de 1h) | **Programador de Tareas nativo de Windows**: exactamente a las **08:00** y a las **21:00** |
+| **Programación** | Triggers de Google Apps Script (imprecisos, ventanas de 1h) | **Programador de Tareas nativo de Windows**: exactamente a las **07:00** y a las **20:00** |
 
 ---
 
@@ -29,7 +29,7 @@ Podcast Financiero/
 ├── script_generator.py   # Generación del guión conversacional con Gemini 2.5 Flash
 ├── tts_synthesizer.py    # Síntesis con Google Studio Voices y ensamblado en MP3
 ├── email_notifier.py     # Envío de email con el guión formateado y el MP3 adjunto
-├── scheduler.py          # Automatizador para Windows (08:00 y 21:00)
+├── scheduler.py          # Automatizador para Windows (07:00 y 20:00)
 ├── main.py               # Punto de entrada CLI
 ├── run_podcast.bat       # Lanzador automático para Windows Task Scheduler
 ├── podcasts/             # Archivos MP3 generados
@@ -58,7 +58,7 @@ python main.py --test-tts
 python main.py --test-rss
 ```
 
-### 4. Configurar la ejecución automática a las 08:00 y 21:00
+### 4. Configurar la ejecución automática a las 07:00 y 20:00
 ```powershell
 python main.py --schedule-install
 ```

@@ -21,8 +21,8 @@ SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SENDER_NAME = os.getenv("SENDER_NAME", "Podcast Financiero AI")
 
-SCHEDULE_MORNING = os.getenv("SCHEDULE_MORNING", "08:00")
-SCHEDULE_EVENING = os.getenv("SCHEDULE_EVENING", "21:00")
+SCHEDULE_MORNING = os.getenv("SCHEDULE_MORNING", "07:00")
+SCHEDULE_EVENING = os.getenv("SCHEDULE_EVENING", "20:00")
 
 OUTPUT_DIR = BASE_DIR / "podcasts"
 SCRIPTS_DIR = BASE_DIR / "scripts"
