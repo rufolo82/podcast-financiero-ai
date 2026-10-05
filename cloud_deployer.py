@@ -126,7 +126,7 @@ def deploy_to_github_cloud():
         raise RuntimeError(f"Error en git push: {push_res.stderr}")
 
     print(f"✅ Código sincronizado en: https://github.com/{username}/{REPO_NAME}")
-    print("🎉 El podcast ahora se ejecutará en la nube a las 08:00 y 21:00 incluso con el PC apagado.")
+    print("🎉 El podcast ahora se ejecutará en la nube a las 07:00 y 20:00 incluso con el PC apagado.")
     print("=" * 60)
 
 if __name__ == "__main__":
