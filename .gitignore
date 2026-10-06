@@ -1,5 +1,6 @@
 # Secretos locales
 .env
+disparador_google_apps_script.js
 
 # Archivos generados y logs
 __pycache__/

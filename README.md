@@ -66,19 +66,11 @@ python main.py --schedule-install
 
 ---
 
-## 📧 Configuración del Envío de Correo (SMTP)
+## ⏰ Disparador en la Nube (Google Apps Script) para Máxima Puntualidad
 
-En el archivo `.env`, completa los datos de tu servidor de correo emisor:
+Para garantizar que el podcast se dispare exactamente a las **07:00** y a las **20:00** (hora de España) sin sufrir retrasos de cola y **con el ordenador completamente apagado**:
 
-```ini
-DESTINATION_EMAIL=rlm_1982@hotmail.com
-
-# Para usar una cuenta de Gmail emisora:
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu_cuenta@gmail.com
-SMTP_PASSWORD=tu_contraseña_de_aplicacion_de_16_caracteres
-SENDER_NAME=Podcast Financiero AI
-```
-
-> **Nota para Gmail**: Para obtener la contraseña de aplicación, entra en tu cuenta de Google -> *Seguridad* -> *Verificación en dos pasos* -> *Contraseñas de aplicaciones* y genera una para este script.
+1. Entra en [script.google.com](https://script.google.com).
+2. Abre tu proyecto o crea uno nuevo y pega el contenido del archivo [`disparador_google_apps_script.js`](./disparador_google_apps_script.js).
+3. Selecciona la función `configurarHorariosPuntuales` en el menú desplegable y haz clic en **Ejecutar**.
+4. ¡Listo! Google se encargará de despertar a GitHub Actions a las 07:00 y a las 20:00 exactas todos los días.
