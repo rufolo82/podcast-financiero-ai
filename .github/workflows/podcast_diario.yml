@@ -2,9 +2,26 @@ name: Podcast Financiero Diario (07:00 y 20:00 Madrid)
 
 on:
   schedule:
-    # Pulso cada 20 minutos para absorber cualquier retraso en la cola de GitHub Actions
-    # El filtro en Bash descarta en 0.01s cualquier ejecución fuera de las 07:00 o 20:00 Madrid
-    - cron: '*/20 * * * *'
+    # --- MAÑANA (07:00 Madrid) ---
+    # Verano CEST (UTC+2): 04:45, 05:00, 05:15 UTC
+    - cron: '45 4 * * *'
+    - cron: '0 5 * * *'
+    - cron: '15 5 * * *'
+    # Invierno CET (UTC+1): 05:45, 06:00, 06:15 UTC
+    - cron: '45 5 * * *'
+    - cron: '0 6 * * *'
+    - cron: '15 6 * * *'
+
+    # --- NOCHE (20:00 Madrid) ---
+    # Verano CEST (UTC+2): 17:45, 18:00, 18:15 UTC
+    - cron: '45 17 * * *'
+    - cron: '0 18 * * *'
+    - cron: '15 18 * * *'
+    # Invierno CET (UTC+1): 18:45, 19:00, 19:15 UTC
+    - cron: '45 18 * * *'
+    - cron: '0 19 * * *'
+    - cron: '15 19 * * *'
+
   workflow_dispatch: # Permite ejecutarlo manualmente en cualquier momento
 
 jobs:
@@ -12,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verificar si estamos en ventana de 07:00 o 20:00 (Hora de España)
+      - name: Verificar si estamos en franja de emisión de España
         id: check_time
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -23,12 +40,12 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # Ventana Mañana: 06:50 a 09:30 Madrid | Ventana Noche: 19:50 a 22:00 Madrid
-          if { [ "$HM" -ge 0650 ] && [ "$HM" -le 0930 ]; } || { [ "$HM" -ge 1950 ] && [ "$HM" -le 2200 ]; }; then
-            echo "✅ Dentro de ventana horaria de emisión en España ($HM). Continuando..."
+          # Franja Mañana (07:00): 06:30 a 13:30 | Franja Noche (20:00): 19:30 a 23:30
+          if { [ "$HM" -ge 0630 ] && [ "$HM" -le 1330 ]; } || { [ "$HM" -ge 1930 ] && [ "$HM" -le 2330 ]; }; then
+            echo "✅ Dentro de franja horaria activa en España ($HM). Continuando..."
             echo "should_run=true" >> $GITHUB_OUTPUT
           else
-            echo "⏹️ Fuera de ventana horaria ($HM). Saliendo en 0.01s."
+            echo "⏹️ Fuera de franja horaria ($HM). Saliendo sin emitir."
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
