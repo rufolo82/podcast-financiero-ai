@@ -28,19 +28,19 @@ def get_current_slot_madrid() -> tuple[str, str, int]:
     return date_prefix, slot, now.hour
 
 def is_within_schedule_window() -> tuple[bool, str]:
-    """Verifica que una ejecución automática ocurra dentro de las franjas de emisión (Mañana: 06:30-13:30 | Noche: 19:30-23:30 Madrid)"""
+    """Verifica que una ejecución automática ocurra estrictamente dentro de la ventana puntual (Mañana: 06:50-07:25 | Noche: 19:50-20:25 Madrid)"""
     madrid_tz = pytz.timezone("Europe/Madrid")
     now = datetime.now(madrid_tz)
     hm = now.hour * 60 + now.minute
 
-    # Franja Mañana (07:00): 06:30 (390m) a 13:30 (810m)
-    if 390 <= hm <= 810:
-        return True, f"Franja matutina activa ({now.strftime('%H:%M')} Madrid)"
-    # Franja Noche (20:00): 19:30 (1170m) a 23:30 (1410m)
-    if 1170 <= hm <= 1410:
-        return True, f"Franja nocturna activa ({now.strftime('%H:%M')} Madrid)"
+    # Franja Mañana (07:00 +- 25 min): 06:50 (410m) a 07:25 (445m)
+    if 410 <= hm <= 445:
+        return True, f"Franja matutina puntual activa ({now.strftime('%H:%M')} Madrid)"
+    # Franja Noche (20:00 +- 25 min): 19:50 (1190m) a 20:25 (1225m)
+    if 1190 <= hm <= 1225:
+        return True, f"Franja nocturna puntual activa ({now.strftime('%H:%M')} Madrid)"
 
-    return False, f"Hora fuera de franja de emisión ({now.strftime('%H:%M')} Madrid). Evitando envíos de madrugada."
+    return False, f"Hora fuera de franja puntual ({now.strftime('%H:%M')} Madrid). Cancelando para evitar envíos a deshoras."
 
 def was_slot_already_sent_today() -> bool:
     """Consulta por IMAP en [Gmail]/Enviados si ya se envió el podcast de este turno (mañana o noche) hoy"""

@@ -23,9 +23,9 @@ def install_windows_tasks() -> bool:
     except Exception:
         target_path = str(bat_path)
 
-    # 1. Tareas programadas a las 08:00 y 21:00 con repetición cada 30 min durante 2 horas por si el equipo estaba suspendido
-    cmd_morning = f'schtasks /create /tn "{task_morning}" /tr "{target_path}" /sc daily /st {SCHEDULE_MORNING} /ri 30 /du 02:00 /f'
-    cmd_evening = f'schtasks /create /tn "{task_evening}" /tr "{target_path}" /sc daily /st {SCHEDULE_EVENING} /ri 30 /du 02:00 /f'
+    # 1. Tareas programadas a las 07:00 y 20:00 puntuales
+    cmd_morning = f'schtasks /create /tn "{task_morning}" /tr "{target_path}" /sc daily /st {SCHEDULE_MORNING} /f'
+    cmd_evening = f'schtasks /create /tn "{task_evening}" /tr "{target_path}" /sc daily /st {SCHEDULE_EVENING} /f'
 
     subprocess.run(cmd_morning, shell=True, capture_output=True, text=True)
     subprocess.run(cmd_evening, shell=True, capture_output=True, text=True)

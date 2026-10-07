@@ -3,33 +3,37 @@ name: Podcast Financiero Diario (07:00 y 20:00 Madrid)
 on:
   schedule:
     # --- MAÑANA (07:00 Madrid) ---
-    # Verano CEST (UTC+2): 04:45, 05:00, 05:15 UTC
-    - cron: '45 4 * * *'
-    - cron: '0 5 * * *'
-    - cron: '15 5 * * *'
-    # Invierno CET (UTC+1): 05:45, 06:00, 06:15 UTC
-    - cron: '45 5 * * *'
-    - cron: '0 6 * * *'
-    - cron: '15 6 * * *'
+    # Verano CEST (UTC+2): 06:53, 07:01, 07:08, 07:16 Madrid (minutos descolapsados)
+    - cron: '53 4 * * *'
+    - cron: '1 5 * * *'
+    - cron: '8 5 * * *'
+    - cron: '16 5 * * *'
+    # Invierno CET (UTC+1): 06:53, 07:01, 07:08, 07:16 Madrid
+    - cron: '53 5 * * *'
+    - cron: '1 6 * * *'
+    - cron: '8 6 * * *'
+    - cron: '16 6 * * *'
 
     # --- NOCHE (20:00 Madrid) ---
-    # Verano CEST (UTC+2): 17:45, 18:00, 18:15 UTC
-    - cron: '45 17 * * *'
-    - cron: '0 18 * * *'
-    - cron: '15 18 * * *'
-    # Invierno CET (UTC+1): 18:45, 19:00, 19:15 UTC
-    - cron: '45 18 * * *'
-    - cron: '0 19 * * *'
-    - cron: '15 19 * * *'
+    # Verano CEST (UTC+2): 19:53, 20:01, 20:08, 20:16 Madrid (minutos descolapsados)
+    - cron: '53 17 * * *'
+    - cron: '1 18 * * *'
+    - cron: '8 18 * * *'
+    - cron: '16 18 * * *'
+    # Invierno CET (UTC+1): 19:53, 20:01, 20:08, 20:16 Madrid
+    - cron: '53 18 * * *'
+    - cron: '1 19 * * *'
+    - cron: '8 19 * * *'
+    - cron: '16 19 * * *'
 
-  workflow_dispatch: # Permite ejecutarlo manualmente en cualquier momento
+  workflow_dispatch: # Permite ejecución manual o llamada API instantánea
 
 jobs:
   generar-y-enviar-podcast:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verificar si estamos en franja de emisión de España
+      - name: Verificar ventana horaria puntual de España (07:00 y 20:00)
         id: check_time
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -40,12 +44,12 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # Franja Mañana (07:00): 06:30 a 13:30 | Franja Noche (20:00): 19:30 a 23:30
-          if { [ "$HM" -ge 0630 ] && [ "$HM" -le 1330 ]; } || { [ "$HM" -ge 1930 ] && [ "$HM" -le 2330 ]; }; then
-            echo "✅ Dentro de franja horaria activa en España ($HM). Continuando..."
+          # Ventana estricta puntual: Mañana (06:50 a 07:25) | Noche (19:50 a 20:25)
+          if { [ "$HM" -ge 0650 ] && [ "$HM" -le 0725 ]; } || { [ "$HM" -ge 1950 ] && [ "$HM" -le 2025 ]; }; then
+            echo "✅ Dentro de ventana horaria puntual en España ($HM). Continuando..."
             echo "should_run=true" >> $GITHUB_OUTPUT
           else
-            echo "⏹️ Fuera de franja horaria ($HM). Saliendo sin emitir."
+            echo "⏹️ Fuera de ventana horaria puntual ($HM). Cancelando para evitar envíos a deshoras."
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
