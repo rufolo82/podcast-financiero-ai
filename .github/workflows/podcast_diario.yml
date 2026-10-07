@@ -74,9 +74,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
           GEMINI_MODEL: gemini-2.5-flash
-          VOICE_ANA: es-ES-Neural2-A
-          VOICE_CARLOS: es-ES-Neural2-F
-          TTS_SPEAKING_RATE: '1.05'
+          VOICE_ANA: es-ES-Chirp3-HD-Aoede
+          VOICE_CARLOS: es-ES-Chirp3-HD-Fenrir
+          TTS_SPEAKING_RATE: '1.02'
           DESTINATION_EMAIL: ${{ secrets.DESTINATION_EMAIL }}
           SMTP_HOST: smtp.gmail.com
           SMTP_PORT: '587'

@@ -150,10 +150,10 @@ def create_podcast_audio(script_text: str) -> Tuple[Path, int]:
         
         if speaker == "CARLOS":
             voice = VOICE_CARLOS
-            fallback = "es-ES-Wavenet-B"
+            fallback = "es-ES-Neural2-F"
         else:
             voice = VOICE_ANA
-            fallback = "es-ES-Wavenet-C"
+            fallback = "es-ES-Neural2-A"
 
         audio_bytes = synthesize_turn(text, voice, fallback)
         audio_chunks.append(audio_bytes)

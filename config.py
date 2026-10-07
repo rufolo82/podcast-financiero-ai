@@ -10,9 +10,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 TTS_API_KEY = os.getenv("TTS_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
-VOICE_ANA = os.getenv("VOICE_ANA", "es-ES-Neural2-A")
-VOICE_CARLOS = os.getenv("VOICE_CARLOS", "es-ES-Neural2-F")
-TTS_SPEAKING_RATE = float(os.getenv("TTS_SPEAKING_RATE", "1.05"))
+VOICE_ANA = os.getenv("VOICE_ANA", "es-ES-Chirp3-HD-Aoede")
+VOICE_CARLOS = os.getenv("VOICE_CARLOS", "es-ES-Chirp3-HD-Fenrir")
+TTS_SPEAKING_RATE = float(os.getenv("TTS_SPEAKING_RATE", "1.02"))
 
 DESTINATION_EMAIL = os.getenv("DESTINATION_EMAIL", "rlm_1982@hotmail.com")
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
