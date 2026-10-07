@@ -110,8 +110,8 @@ def synthesize_turn(text: str, voice_name: str, fallback_voice: str | None = Non
 
     req = urllib.request.Request(
         TTS_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
     try:
@@ -124,8 +124,8 @@ def synthesize_turn(text: str, voice_name: str, fallback_voice: str | None = Non
             payload["voice"]["name"] = fallback_voice
             req2 = urllib.request.Request(
                 TTS_URL,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"}
+                data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                headers={"Content-Type": "application/json; charset=utf-8"}
             )
             with urllib.request.urlopen(req2, timeout=20) as resp2:
                 data2 = json.loads(resp2.read().decode("utf-8"))
