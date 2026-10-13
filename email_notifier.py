@@ -28,13 +28,13 @@ def get_current_slot_madrid() -> tuple[str, str, int]:
     return date_prefix, slot, now.hour
 
 def is_within_schedule_window() -> tuple[bool, str]:
-    """Verifica que una ejecución automática ocurra estrictamente dentro de la ventana puntual (Mañana: 06:50-07:25 | Noche: 19:50-20:25 Madrid)"""
+    """Verifica que una ejecución automática ocurra estrictamente dentro de la ventana puntual (Mañana: 07:50-08:25 | Noche: 19:50-20:25 Madrid)"""
     madrid_tz = pytz.timezone("Europe/Madrid")
     now = datetime.now(madrid_tz)
     hm = now.hour * 60 + now.minute
 
-    # Franja Mañana (07:00 +- 25 min): 06:50 (410m) a 07:25 (445m)
-    if 410 <= hm <= 445:
+    # Franja Mañana (08:00 +- 25 min): 07:50 (470m) a 08:25 (505m)
+    if 470 <= hm <= 505:
         return True, f"Franja matutina puntual activa ({now.strftime('%H:%M')} Madrid)"
     # Franja Noche (20:00 +- 25 min): 19:50 (1190m) a 20:25 (1225m)
     if 1190 <= hm <= 1225:

@@ -23,7 +23,7 @@ def install_windows_tasks() -> bool:
     except Exception:
         target_path = str(bat_path)
 
-    # 1. Tareas programadas a las 07:00 y 20:00 puntuales
+    # 1. Tareas programadas a las 08:00 y 20:00 puntuales
     cmd_morning = f'schtasks /create /tn "{task_morning}" /tr "{target_path}" /sc daily /st {SCHEDULE_MORNING} /f'
     cmd_evening = f'schtasks /create /tn "{task_evening}" /tr "{target_path}" /sc daily /st {SCHEDULE_EVENING} /f'
 
@@ -49,8 +49,8 @@ def install_windows_tasks() -> bool:
                 f.write(vbs_content)
 
     if res_ps.returncode == 0:
-        print(f"✅ Tarea {task_morning} ({SCHEDULE_MORNING} + reintento cada 30m) configurada.")
-        print(f"✅ Tarea {task_evening} ({SCHEDULE_EVENING} + reintento cada 30m) configurada.")
+        print(f"✅ Tarea {task_morning} ({SCHEDULE_MORNING} puntual) configurada.")
+        print(f"✅ Tarea {task_evening} ({SCHEDULE_EVENING} puntual) configurada.")
         print("✅ Auto-comprobación invisible al encender Windows configurada.")
         return True
     else:

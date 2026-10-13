@@ -13,7 +13,7 @@ Sistema profesional en Python para generar y enviar podcasts financieros diarios
 | **Reglas de Mercado** | Mezcla no balanceada | **75% Internacional** (Wall Street, Fed, BCE, tipos) + **25% Nacional** (IBEX 35), sin introducciones vacías |
 | **Límites de Ejecución** | Máximo 6 minutos en Google Apps Script (riesgo de timeout y caída) | **Sin límites**: corre de forma local y estable |
 | **Entrega** | Enlace a Drive con permisos | **Audio MP3 adjunto directamente al correo** para escucharlo en un clic desde el móvil o PC |
-| **Programación** | Triggers de Google Apps Script (imprecisos, ventanas de 1h) | **Programador de Tareas nativo de Windows**: exactamente a las **07:00** y a las **20:00** |
+| **Programación** | Triggers de Google Apps Script (imprecisos, ventanas de 1h) | **Programador de Tareas nativo de Windows**: exactamente a las **08:00** y a las **20:00** |
 
 ---
 
@@ -58,7 +58,7 @@ python main.py --test-tts
 python main.py --test-rss
 ```
 
-### 4. Configurar la ejecución automática a las 07:00 y 20:00
+### 4. Configurar la ejecución automática a las 08:00 y 20:00
 ```powershell
 python main.py --schedule-install
 ```
@@ -68,9 +68,9 @@ python main.py --schedule-install
 
 ## ⏰ Disparador en la Nube (Google Apps Script) para Máxima Puntualidad
 
-Para garantizar que el podcast se dispare exactamente a las **07:00** y a las **20:00** (hora de España) sin sufrir retrasos de cola y **con el ordenador completamente apagado**:
+Para garantizar que el podcast se dispare exactamente a las **08:00** y a las **20:00** (hora de España) sin sufrir retrasos de cola y **con el ordenador completamente apagado**:
 
 1. Entra en [script.google.com](https://script.google.com).
 2. Abre tu proyecto o crea uno nuevo y pega el contenido del archivo [`disparador_google_apps_script.js`](./disparador_google_apps_script.js).
 3. Selecciona la función `configurarHorariosPuntuales` en el menú desplegable y haz clic en **Ejecutar**.
-4. ¡Listo! Google se encargará de despertar a GitHub Actions a las 07:00 y a las 20:00 exactas todos los días.
+4. ¡Listo! Google se encargará de despertar a GitHub Actions a las 08:00 y a las 20:00 exactas todos los días.
