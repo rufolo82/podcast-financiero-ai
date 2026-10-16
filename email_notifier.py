@@ -33,11 +33,11 @@ def is_within_schedule_window() -> tuple[bool, str]:
     now = datetime.now(madrid_tz)
     hm = now.hour * 60 + now.minute
 
-    # Franja Mañana (08:00 +- 25 min): 07:50 (470m) a 08:25 (505m)
-    if 470 <= hm <= 505:
+    # Franja Mañana (08:00 +- 30 min): 07:45 (465m) a 08:30 (510m)
+    if 465 <= hm <= 510:
         return True, f"Franja matutina puntual activa ({now.strftime('%H:%M')} Madrid)"
-    # Franja Noche (20:00 +- 25 min): 19:50 (1190m) a 20:25 (1225m)
-    if 1190 <= hm <= 1225:
+    # Franja Noche (20:00 +- 30 min): 19:45 (1185m) a 20:30 (1230m)
+    if 1185 <= hm <= 1230:
         return True, f"Franja nocturna puntual activa ({now.strftime('%H:%M')} Madrid)"
 
     return False, f"Hora fuera de franja puntual ({now.strftime('%H:%M')} Madrid). Cancelando para evitar envíos a deshoras."

@@ -27,6 +27,12 @@ on:
     - cron: '16 19 * * *'
 
   workflow_dispatch: # Permite ejecución manual o llamada API instantánea
+    inputs:
+      force:
+        description: 'Forzar ejecucion manual ignorando horario'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   generar-y-enviar-podcast:
@@ -37,15 +43,17 @@ jobs:
         id: check_time
         env:
           EVENT_NAME: ${{ github.event_name }}
+          FORCE_RUN: ${{ github.event.inputs.force }}
         run: |
           HM=$(TZ="Europe/Madrid" date +%H%M)
-          echo "Hora actual en Madrid: $HM (Evento: $EVENT_NAME)"
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+          echo "Hora actual en Madrid: $HM (Evento: $EVENT_NAME, Forzar: $FORCE_RUN)"
+          if [ "$FORCE_RUN" = "true" ]; then
+            echo "⚡ Forzado manual explícito activado. Saltando comprobación horaria."
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # Ventana estricta puntual: Mañana (07:50 a 08:25) | Noche (19:50 a 20:25)
-          if { [ "$HM" -ge 0750 ] && [ "$HM" -le 0825 ]; } || { [ "$HM" -ge 1950 ] && [ "$HM" -le 2025 ]; }; then
+          # Ventana estricta puntual: Mañana (07:45 a 08:30) | Noche (19:45 a 20:30)
+          if { [ "$HM" -ge 0745 ] && [ "$HM" -le 0830 ]; } || { [ "$HM" -ge 1945 ] && [ "$HM" -le 2030 ]; }; then
             echo "✅ Dentro de ventana horaria puntual en España ($HM). Continuando..."
             echo "should_run=true" >> $GITHUB_OUTPUT
           else
@@ -83,10 +91,10 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EVENT_NAME: ${{ github.event_name }}
+          FORCE_RUN: ${{ github.event.inputs.force }}
         run: |
           python -c "
           import os, main
-          event_name = os.getenv('EVENT_NAME', '')
-          is_scheduled = (event_name == 'schedule')
-          main.run_workflow(scheduled_mode=is_scheduled)
+          is_forced = (os.getenv('FORCE_RUN', 'false').lower() == 'true')
+          main.run_workflow(scheduled_mode=(not is_forced))
           "
