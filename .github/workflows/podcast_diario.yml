@@ -39,27 +39,63 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verificar ventana horaria puntual de España (08:00 y 20:00)
+      - name: Sincronizar y esperar al horario puntual de emision (08:00 y 20:00)
         id: check_time
         env:
           EVENT_NAME: ${{ github.event_name }}
           FORCE_RUN: ${{ github.event.inputs.force }}
         run: |
-          HM=$(TZ="Europe/Madrid" date +%H%M)
-          echo "Hora actual en Madrid: $HM (Evento: $EVENT_NAME, Forzar: $FORCE_RUN)"
-          if [ "$FORCE_RUN" = "true" ]; then
-            echo "⚡ Forzado manual explícito activado. Saltando comprobación horaria."
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          # Ventana estricta puntual: Mañana (07:45 a 08:30) | Noche (19:45 a 20:30)
-          if { [ "$HM" -ge 0745 ] && [ "$HM" -le 0830 ]; } || { [ "$HM" -ge 1945 ] && [ "$HM" -le 2030 ]; }; then
-            echo "✅ Dentro de ventana horaria puntual en España ($HM). Continuando..."
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
-            echo "⏹️ Fuera de ventana horaria puntual ($HM). Cancelando para evitar envíos a deshoras."
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
+          python3 -c "
+          import os, sys, time
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          force = (os.getenv('FORCE_RUN', 'false').lower() == 'true')
+          if force:
+              print('⚡ Forzado manual activo. Saltando espera horaria.')
+              with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
+                  f.write('should_run=true\n')
+              sys.exit(0)
+
+          madrid = ZoneInfo('Europe/Madrid')
+          now = datetime.now(madrid)
+          hm = now.hour * 60 + now.minute
+
+          # Franja Mañana: 07:00 a 08:30 (Si despierta temprano a las 07:14, espera a las 08:00:00 exactas)
+          if 420 <= hm <= 510:
+              target = now.replace(hour=8, minute=0, second=0, microsecond=0)
+              wait_sec = max(0, int((target - now).total_seconds()))
+              slot = 'MANANA'
+          # Franja Noche: 19:00 a 20:45 (Si despierta temprano, espera a las 20:00:00 exactas)
+          elif 1140 <= hm <= 1245:
+              target = now.replace(hour=20, minute=0, second=0, microsecond=0)
+              wait_sec = max(0, int((target - now).total_seconds()))
+              slot = 'NOCHE'
+          else:
+              print(f'⏹️ Fuera de franja de emision ({now.strftime(\"%H:%M\")} Madrid). Cancelando para evitar envios a deshoras.')
+              with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
+                  f.write('should_run=false\n')
+              sys.exit(0)
+
+          if wait_sec > 0:
+              m, s = divmod(wait_sec, 60)
+              print(f'⏰ Despertador en la nube detectado a las {now.strftime(\"%H:%M:%S\")} Madrid.')
+              print(f'🎯 Horario objetivo: {target.strftime(\"%H:%M:%S\")} Madrid.')
+              print(f'⏳ Sincronizando en la nube: esperando {wait_sec}s ({m}m {s}s) para emitir exactamente a las {target.strftime(\"%H:%M\")}...')
+              remaining = wait_sec
+              while remaining > 0:
+                  chunk = min(remaining, 300)
+                  time.sleep(chunk)
+                  remaining -= chunk
+                  now_curr = datetime.now(madrid)
+                  if remaining > 0:
+                      print(f'⏳ Sincronizando... Faltan {remaining // 60} min (Hora actual: {now_curr.strftime(\"%H:%M:%S\")})', flush=True)
+
+          now_final = datetime.now(madrid)
+          print(f'✅ ¡Hora puntual alcanzada ({now_final.strftime(\"%H:%M:%S\")} Madrid)! Iniciando produccion del podcast.')
+          with open(os.getenv('GITHUB_OUTPUT'), 'a') as f:
+              f.write('should_run=true\n')
+          "
 
       - name: Descargar código del repositorio
         if: steps.check_time.outputs.should_run == 'true'
