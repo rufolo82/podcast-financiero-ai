@@ -34,6 +34,10 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: podcast-diario-emission
+  cancel-in-progress: false
+
 jobs:
   generar-y-enviar-podcast:
     runs-on: ubuntu-latest

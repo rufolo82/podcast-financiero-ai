@@ -83,6 +83,10 @@ def run_workflow(scheduled_mode: bool = False):
         return
 
     # 4. Envío por correo
+    if scheduled_mode and was_slot_already_sent_today():
+        print("⏹️ Verificación final: el podcast de este turno ya fue enviado hoy. Cancelando envío para evitar duplicados.")
+        return
+
     print(f"\n📧 4/4. Procesando notificación por correo para {DESTINATION_EMAIL}...")
     send_podcast_email(mp3_path, script)
 
@@ -119,7 +123,8 @@ def main():
     parser.add_argument("--scheduled", action="store_true", help="Ejecutar en modo programado (con filtro de ventana horaria y anti-duplicados)")
     parser.add_argument("--test-tts", action="store_true", help="Probar las voces de Google")
     parser.add_argument("--test-rss", action="store_true", help="Probar recolección de noticias RSS")
-    parser.add_argument("--schedule-install", action="store_true", help="Instalar tareas automáticas a las 08:00 y 21:00 en Windows")
+    parser.add_argument("--schedule-install", action="store_true", help="Instalar tareas automáticas a las 08:00 y 20:00 en Windows")
+    parser.add_argument("--schedule-uninstall", action="store_true", help="Desinstalar tareas automáticas de Windows")
     parser.add_argument("--schedule-run", action="store_true", help="Ejecutar el planificador continuo en primer plano")
     parser.add_argument("--sync-cloud", action="store_true", help="Sincronizar código y configuración con GitHub Actions en la nube")
 
@@ -131,6 +136,9 @@ def main():
         test_rss()
     elif args.schedule_install:
         install_windows_tasks()
+    elif args.schedule_uninstall:
+        from scheduler import uninstall_windows_tasks
+        uninstall_windows_tasks()
     elif args.schedule_run:
         run_loop_scheduler(lambda: run_workflow(scheduled_mode=True))
     elif args.sync_cloud:
